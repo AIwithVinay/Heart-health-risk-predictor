@@ -150,7 +150,7 @@ div.stDownloadButton > button:hover {{
 </style>
 """, unsafe_allow_html=True)
 
-# --- 12-Feature Model Training (Added BMI) ---
+# --- 6-Feature Model Training (Simplified) ---
 @st.cache_resource
 def train_model():
     np.random.seed(42)
@@ -161,37 +161,24 @@ def train_model():
     cp = np.random.randint(0, 4, n_samples)
     trestbps = np.random.randint(94, 201, n_samples)
     chol = np.random.randint(126, 565, n_samples)
-    fbs = np.random.randint(0, 2, n_samples)
-    restecg = np.random.randint(0, 3, n_samples)
-    thalach = np.random.randint(71, 203, n_samples)
-    exang = np.random.randint(0, 2, n_samples)
-    oldpeak = np.random.uniform(0.0, 6.2, n_samples)
-    slope = np.random.randint(0, 3, n_samples)
     
     height_m = np.random.uniform(1.5, 1.95, n_samples)
     weight_kg = np.random.uniform(50, 120, n_samples)
     bmi = weight_kg / (height_m ** 2)
     
     risk_score = 0
-    risk_score += ((age - 29)/49) * 0.15
-    risk_score += sex * 0.05
-    risk_score += ((3 - cp)/3) * 0.15
-    risk_score += ((trestbps - 94)/107) * 0.10
-    risk_score += ((chol - 126)/439) * 0.10
-    risk_score += fbs * 0.05
-    risk_score += (restecg/2) * 0.05
-    risk_score -= ((thalach - 71)/132) * 0.15
-    risk_score += exang * 0.15
-    risk_score += (oldpeak/6.2) * 0.10
-    risk_score += (slope/2) * 0.05
-    risk_score += ((bmi - 18.5)/21.5) * 0.15
+    risk_score += ((age - 29)/49) * 0.25
+    risk_score += sex * 0.10
+    risk_score += ((3 - cp)/3) * 0.25
+    risk_score += ((trestbps - 94)/107) * 0.15
+    risk_score += ((chol - 126)/439) * 0.15
+    risk_score += ((bmi - 18.5)/21.5) * 0.10
     
     target = (risk_score > 0.45).astype(int) 
     
     df = pd.DataFrame({
         'Age': age, 'Sex': sex, 'ChestPain': cp, 'RestingBP': trestbps,
-        'Cholesterol': chol, 'FastingBS': fbs, 'RestECG': restecg,
-        'MaxHR': thalach, 'ExAngina': exang, 'Oldpeak': oldpeak, 'Slope': slope, 'BMI': bmi,
+        'Cholesterol': chol, 'BMI': bmi,
         'Target': target
     })
     
@@ -217,45 +204,28 @@ st.markdown("<div class='sub-header'>A Comprehensive Machine Learning Health Che
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.markdown("### 👤 Demographics & Form")
+    st.markdown("### 👤 Basic Details")
     age = st.slider("1. Age (Years)", 20, 100, 35)
     sex_str = st.radio("2. Biological Sex", ["Female", "Male"], horizontal=True)
     sex = 1 if sex_str == "Male" else 0
-    
+
+with col2:
+    st.markdown("### ⚖️ Body Metrics")
     col_h, col_w = st.columns(2)
     with col_h: height = st.number_input("3. Height (cm)", 100, 250, 175)
     with col_w: weight = st.number_input("4. Weight (kg)", 30, 200, 70)
         
     calculated_bmi = weight / ((height/100)**2)
-    st.info(f"⚖️ Calculated Body Mass Index (BMI): **{calculated_bmi:.1f}**")
+    st.info(f"⚖️ Calculated BMI: **{calculated_bmi:.1f}**")
 
-with col2:
-    st.markdown("### ❤️ Vital Indicators")
-    trestbps = st.slider("5. Resting Blood Pressure (mmHg)", 90, 200, 115)
+with col3:
+    st.markdown("### ❤️ Heart Vitals")
+    trestbps = st.slider("5. Blood Pressure (mmHg)", 90, 200, 115)
     chol = st.slider("6. Total Cholesterol (mg/dl)", 100, 600, 160)
     
     cp_opts = ["Severe Angina", "Moderate Angina", "Mild Pain", "None/Asymptomatic"]
     cp_str = st.selectbox("7. Chest Pain Level", options=cp_opts, index=3)
     cp = cp_opts.index(cp_str)
-    
-    fbs_str = st.radio("8. Fasting Blood Sugar > 120?", ["No", "Yes"], horizontal=True)
-    fbs = 1 if fbs_str == "Yes" else 0
-
-with col3:
-    st.markdown("### 📈 Advanced Diagnostics")
-    thalach = st.slider("9. Peak Heart Rate (BPM)", 60, 220, 170)
-    
-    exang_str = st.radio("10. Pain during Exercise?", ["No", "Yes"], horizontal=True)
-    exang = 1 if exang_str == "Yes" else 0
-    
-    ecg_opts = ["Normal", "ST-T Wave Abnormality", "Left Ventricular Hypertrophy"]
-    restecg_str = st.selectbox("11. Resting ECG Results", options=ecg_opts)
-    restecg = ecg_opts.index(restecg_str)
-    
-    oldpeak = st.slider("12. ST Depression (Oldpeak)", 0.0, 6.0, 0.0, step=0.1)
-    slope_opts = ["Upsloping", "Flat", "Downsloping"]
-    slope_str = st.selectbox("13. Peak ST Slope", options=slope_opts)
-    slope = slope_opts.index(slope_str)
 
 st.write("---")
 
@@ -263,7 +233,7 @@ col_btn1, col_btn2, col_btn3 = st.columns([1, 1.5, 1])
 with col_btn2:
     agree = st.checkbox("I acknowledge that this is an AI simulation and does NOT replace professional medical advice.", value=False)
     
-    if st.button("RUN 12-POINT ANALYSIS ✨", disabled=not agree):
+    if st.button("RUN HEALTH ANALYSIS ✨", disabled=not agree):
         import random
         # Pick a new gradient:
         current_idx = gradients.index(st.session_state.bg_gradient) if st.session_state.bg_gradient in gradients else 0
@@ -274,15 +244,15 @@ with col_btn2:
         # Prepare Data Models
         st.session_state.bmi_val = calculated_bmi
         st.session_state.patient_data = pd.DataFrame([
-            [age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, calculated_bmi]
-        ], columns=['Age', 'Sex', 'ChestPain', 'RestingBP', 'Cholesterol', 'FastingBS', 'RestECG', 'MaxHR', 'ExAngina', 'Oldpeak', 'Slope', 'BMI'])
+            [age, sex, cp, trestbps, chol, calculated_bmi]
+        ], columns=['Age', 'Sex', 'ChestPain', 'RestingBP', 'Cholesterol', 'BMI'])
         
         st.session_state.chart_data = pd.DataFrame({
-            "Patient Values": [trestbps, chol, thalach, calculated_bmi*4],
-            "Optimal Baseline": [120, 180, 160, 22*4]
-        }, index=["Blood Pressure", "Cholesterol", "Max Heart Rate", "Body Mass Index (Scaled)"])
+            "Patient Values": [trestbps, chol, calculated_bmi*4],
+            "Optimal Baseline": [120, 180, 22*4]
+        }, index=["Blood Pressure", "Cholesterol", "Body Mass Index (Scaled)"])
         
-        st.session_state.report_text = f"CARDIAC WELLNESS SYSTEM - DIAGNOSTIC REPORT\nDate generated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\nPatient Age: {age} | Sex: {sex_str}\nHeight: {height} cm | Weight: {weight} kg | BMI: {calculated_bmi:.1f}\nBlood Pressure: {trestbps} | Cholesterol: {chol} | Max Heart Rate: {thalach}\n\nDISCLAIMER: AI Confidence Accuracy on Validation data is {accuracy*100:.2f}%."
+        st.session_state.report_text = f"CARDIAC WELLNESS SYSTEM - DIAGNOSTIC REPORT\nDate generated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\nPatient Age: {age} | Sex: {sex_str}\nHeight: {height} cm | Weight: {weight} kg | BMI: {calculated_bmi:.1f}\nBlood Pressure: {trestbps} | Cholesterol: {chol}\n\nDISCLAIMER: AI Confidence Accuracy on Validation data is {accuracy*100:.2f}%."
         
         st.rerun()
 
@@ -290,7 +260,7 @@ with col_btn2:
 # REPORT RENDERED ON THE SAME PAGE
 # ==========================================
 if st.session_state.submitted:
-    with st.spinner('Compiling 12 variables against AI Neural Network...'):
+    with st.spinner('Compiling health variables against AI Neural Network...'):
         time.sleep(1)
         
     prediction = model.predict(st.session_state.patient_data)[0]
